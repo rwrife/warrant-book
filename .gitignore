@@ -1,0 +1,37 @@
+# Flutter / Dart
+.dart_tool/
+.packages
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+coverage/
+*.iml
+.idea/
+
+# Android
+android/.gradle/
+android/local.properties
+android/app/debug/
+android/app/profile/
+android/app/release/
+*.keystore
+*.jks
+
+# iOS / macOS
+ios/Pods/
+ios/Flutter/Flutter.podspec
+ios/Flutter/Generated.xcconfig
+ios/Flutter/ephemeral/
+xcuserdata/
+
+# Editor / OS
+.vscode/
+.DS_Store
+*.swp
+
+# Local artifacts
+*.zip
+*.apk
+*.aab
+*.ipa
+exports/
