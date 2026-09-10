@@ -63,20 +63,34 @@ Paper receipts fade, emails get buried, and warranty terms are impossible to loo
 
 ## Current status and milestones
 
-**Status: documentation & backlog only.** No application code, build, test suite, or release artifacts exist yet. This repository contains planning documents and a phased issue backlog.
+**Status: M1 in progress.** The Flutter workspace, strict analyzer settings, smoke tests, and CI gates are in place; the application is a skeleton (placeholder home screen) — registry UI, persistence, reminders, and packaging land in later milestones.
 
-- M0 — Documentation & backlog (this commit)
-- M1 — Project skeleton, CI, and local data layer
+- M0 — Documentation & backlog ✅
+- M1 — Project skeleton, CI, and local data layer (in progress — workspace + CI done, data layer next)
 - M2 — Core registry workflow (add / browse / detail)
 - M3 — Coverage math, reminders, and accessible lists
 - M4 — Attachments, export/backup/restore, privacy controls
 - M5 — Packaging (Android APK / iOS TestFlight candidate), docs, release
 
-## Development quickstart (planned)
+## Development quickstart
 
-- Flutter 3.x stable (Dart). Clone the repo, `flutter pub get`, `flutter test`, `flutter run`.
-- Android: any recent Android Studio + SDK 34+ toolchain. iOS: Xcode on macOS.
-- CI (planned): GitHub Actions running `flutter analyze`, `flutter test`, and a debug build for both platforms on PRs.
+Requirements: Flutter 3.47.x stable (Dart 3.13+); Android builds need JDK 17 and the Android SDK; iOS builds need Xcode on macOS.
+
+```bash
+flutter pub get      # fetch dependencies (runs l10n generation)
+flutter analyze      # static analysis — must stay at zero issues
+flutter test         # unit + widget tests
+flutter run          # run on a connected device or emulator
+```
+
+Building the debug app manually:
+
+```bash
+flutter build apk --debug              # Android debug APK
+flutter build ios --simulator --debug  # iOS simulator build (macOS)
+```
+
+CI (GitHub Actions, on every PR and push to `main`): `flutter analyze`, `flutter test`, an Android debug APK build (uploaded as an artifact), and an iOS simulator build. See `.github/workflows/ci.yml`.
 
 See `PLAN.md` for architecture, milestones, testing, packaging, and risks.
 

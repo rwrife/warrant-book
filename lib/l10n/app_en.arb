@@ -1,0 +1,7 @@
+{
+  "@@locale": "en",
+  "appTitle": "Warrant Book",
+  "@appTitle": {
+    "description": "The application title shown in the app bar and launcher."
+  }
+}
