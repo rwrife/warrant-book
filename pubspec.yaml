@@ -9,12 +9,20 @@ environment:
 
 dependencies:
   cupertino_icons: ^1.0.8
+  drift: ^2.28.0
   flutter:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
+  # Bundles the native SQLite library into the Android/iOS app binaries.
+  # Host (Linux/macOS) tests use the system libsqlite3 instead — see
+  # test/data/support/db_test_support.dart.
+  sqlite3_flutter_libs: ^0.5.40
+  uuid: ^4.5.0
 
 dev_dependencies:
+  build_runner: ^2.4.0
+  drift_dev: ^2.28.0
   flutter_lints: ^6.0.0
   flutter_test:
     sdk: flutter
