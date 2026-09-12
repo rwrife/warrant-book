@@ -48,6 +48,29 @@ final class DayDate implements Comparable<DayDate> {
   factory DayDate.fromDateTime(DateTime moment) =>
       DayDate(moment.year, moment.month, moment.day);
 
+  /// Parses the canonical ISO-8601 form `yyyy-MM-dd` — exactly what
+  /// [toString] emits — as used by the persistence layer (issue #3).
+  ///
+  /// Throws [FormatException] for anything else (no lenient parsing: a
+  /// corrupt stored date must fail loudly, not silently shift a coverage
+  /// window).
+  factory DayDate.parseIso(String iso) {
+    final match = _isoPattern.firstMatch(iso);
+    if (match == null) {
+      throw FormatException('Expected yyyy-MM-dd, got "$iso"');
+    }
+    // The constructor re-validates the calendar fields, so a stored
+    // "2026-02-30" throws rather than rolling over.
+    return DayDate(
+      int.parse(match.group(1)!),
+      int.parse(match.group(2)!),
+      int.parse(match.group(3)!),
+    );
+  }
+
+  static final RegExp _isoPattern = RegExp(r'^(\d{4})-(\d{2})-(\d{2})$');
+
+
   /// The proleptic-Gregorian year (negative allowed for BCE if ever needed).
   final int year;
 

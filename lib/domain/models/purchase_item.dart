@@ -79,6 +79,19 @@ final class Note {
 
   /// Calendar day the note was written.
   final DayDate recordedOn;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Note &&
+          other.text == text &&
+          other.recordedOn == recordedOn;
+
+  @override
+  int get hashCode => Object.hash(text, recordedOn);
+
+  @override
+  String toString() => 'Note($recordedOn: $text)';
 }
 
 /// A reference (not the bytes) to a receipt photo/PDF in the app-private
@@ -92,6 +105,19 @@ final class AttachmentRef {
 
   /// Original/user-facing file name for display.
   final String? displayName;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is AttachmentRef &&
+          other.relativePath == relativePath &&
+          other.displayName == displayName;
+
+  @override
+  int get hashCode => Object.hash(relativePath, displayName);
+
+  @override
+  String toString() => 'AttachmentRef($relativePath, $displayName)';
 }
 
 /// One registered purchase — the aggregate root of the domain.

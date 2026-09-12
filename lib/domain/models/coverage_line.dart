@@ -115,4 +115,18 @@ final class CoverageLine {
 
   /// Optional free-text label ("Costco extended 3-year"), for display only.
   final String? label;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CoverageLine &&
+          other.kind == kind &&
+          other.basis == basis &&
+          other.label == label;
+
+  @override
+  int get hashCode => Object.hash(kind, basis, label);
+
+  @override
+  String toString() => 'CoverageLine($kind, $basis, label: $label)';
 }
