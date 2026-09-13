@@ -123,35 +123,79 @@ class DriftItemRepository implements ItemRepository {
 
   @override
   Future<List<PurchaseItem>> list(ItemQuery query) async {
-    // Status is derived from coverage lines + today, so list-by-status uses
-    // the same Dart rollup as everywhere else (single source of truth, no
-    // second SQL implementation of the boundary rules). Registry sizes here
-    // are personal (hundreds, not millions): SQL pre-filters the cheap
-    // column criteria (archived/category) and the Dart layer applies the
-    // exact status, search (name/store/notes) and ordering semantics.
-    final stmt = _db.select(_db.items)
-      ..where((t) => t.archived.equals(query.includeArchived));
+    // Issue #4: search and the category/archived filters are evaluated by
+    // SQLite itself (LIKE + correlated EXISTS on notes), never by scanning
+    // every row into Dart. Status and the "any active line" criterion are
+    // still rolled up in Dart with the single source-of-truth domain math
+    // (clamped month arithmetic cannot be expressed losslessly in SQL);
+    // they run on the SQL pre-filtered set only.
+    final stmt = _db.select(_db.items);
+    if (!query.includeArchived && !query.archiveView) {
+      stmt.where((t) => t.archived.equals(false));
+    }
     if (query.category != null) {
       stmt.where((t) => t.category.equals(query.category!));
     }
-    final rows = await stmt.get();
 
     final needleLower = query.search?.trim().toLowerCase();
     final hasSearch = needleLower != null && needleLower.isNotEmpty;
+    if (hasSearch) {
+      // SQLite LIKE is ASCII-case-insensitive, which already covers the
+      // common case; the Dart pass below re-checks exact case-insensitive
+      // substring semantics (unicode-safe) on the small candidate set.
+      final pattern = '%${_escapeLikePattern(needleLower)}%';
+      final noteHits = _db.selectOnly(_db.notes)
+        ..addColumns([_db.notes.id])
+        ..where(
+          _db.notes.itemId.equalsExp(_db.items.id) &
+              _db.notes.body.like(pattern, escapeChar: _likeEscapeChar),
+        );
+      stmt.where((t) =>
+          t.name.like(pattern, escapeChar: _likeEscapeChar) |
+          t.store.like(pattern, escapeChar: _likeEscapeChar) |
+          existsQuery(noteHits));
+    }
+
+    final rows = await stmt.get();
+
     final results = <PurchaseItem>[];
     for (final row in rows) {
       final item = await _assemble(row);
+      if (hasSearch && !_matchesSearch(item, needleLower)) {
+        continue;
+      }
       if (query.status != null &&
           itemCoverageStatus(item, query.today,
                   horizonDays: query.horizonDays) !=
               query.status) {
         continue;
       }
-      // Search spans name, store AND note text; note rows are not joined
-      // into the item query, so matching runs on the assembled aggregate
-      // (see class doc on why list-by-status/notes is computed in Dart).
-      if (hasSearch && !_matchesSearch(item, needleLower)) {
-        continue;
+      if (query.coverageNow) {
+        // "Coverage now": any line still covering today (active OR
+        // expiring — an expiring line still covers until its end day).
+        // Plain no-line registry entries stay here too (they can never
+        // expire and would otherwise appear in no list at all).
+        if (item.coverageLines.isNotEmpty) {
+          final statuses = allLineStatuses(item, query.today,
+              horizonDays: query.horizonDays);
+          final covering = statuses.any((s) =>
+              s.status == CoverageLineStatus.active ||
+              s.status == CoverageLineStatus.expiring);
+          if (!covering) continue;
+        }
+      }
+      if (query.expiringSoon) {
+        final statuses = allLineStatuses(item, query.today,
+            horizonDays: query.horizonDays);
+        if (!statuses.any((s) => s.status == CoverageLineStatus.expiring)) {
+          continue;
+        }
+      }
+      if (query.archiveView) {
+        final rolledUp = itemCoverageStatus(item, query.today,
+            horizonDays: query.horizonDays);
+        final fullyExpired = rolledUp == ItemCoverageStatus.expired;
+        if (!(item.archived || fullyExpired)) continue;
       }
       results.add(item);
     }
@@ -161,6 +205,37 @@ class DriftItemRepository implements ItemRepository {
       return byDate != 0 ? byDate : b.id.compareTo(a.id);
     });
     return results;
+  }
+
+  @override
+  Future<List<String>> categories() async {
+    final stmt = _db.selectOnly(_db.items, distinct: true)
+      ..addColumns([_db.items.category])
+      ..where(_db.items.category.isNotNull())
+      ..orderBy([OrderingTerm.asc(_db.items.category)]);
+    final rows = await stmt.get();
+    return [
+      for (final row in rows)
+        ?row.read(_db.items.category),
+    ];
+  }
+
+  /// Escape character used with every `LIKE` pattern in [list].
+  static const String _likeEscapeChar = r'\';
+
+  /// Escapes `_`, `%` and the escape char itself so user-typed search text
+  /// is matched literally (a query for "100%" must not wildcard-match).
+  static String _escapeLikePattern(String needle) {
+    final buffer = StringBuffer();
+    for (final unit in needle.codeUnits) {
+      if (unit == 0x5F /* _ */ ||
+          unit == 0x25 /* % */ ||
+          unit == 0x5C /* \ */) {
+        buffer.write(_likeEscapeChar);
+      }
+      buffer.writeCharCode(unit);
+    }
+    return buffer.toString();
   }
 
   Future<void> _deleteChildren(String itemId) async {
