@@ -414,6 +414,151 @@ void main() {
       });
     });
   });
+
+  group('issue #4 tab filters', () {
+    // Seed one item per tab membership at today == 2026-06-15:
+    // - active-item:   3-year line from 2026-01-01 → active
+    // - expiring-item: explicit line ending 2026-06-30 → expiring (15d)
+    // - expired-item:  explicit line ended 2026-01-31 → expired
+    // - plain-item:    no lines at all
+    // - archived-item: archived, active line
+    Future<void> seedTabs(WarrantBookDatabase db) async {
+      final repo = DriftItemRepository(db);
+      await repo.save(PurchaseItem(
+        id: 'active-item',
+        name: 'Active',
+        purchaseDate: day(2026, 1, 1),
+        coverageLines: [
+          CoverageLine(
+            kind: CoverageLineKind.manufacturerWarranty,
+            basis: DurationFromPurchase.years(3),
+          ),
+        ],
+      ));
+      await repo.save(PurchaseItem(
+        id: 'expiring-item',
+        name: 'Expiring',
+        purchaseDate: day(2026, 1, 1),
+        coverageLines: [
+          CoverageLine(
+            kind: CoverageLineKind.returnWindow,
+            basis: ExplicitEndDate(endDateValue: DayDate(2026, 6, 30)),
+          ),
+        ],
+      ));
+      await repo.save(PurchaseItem(
+        id: 'expired-item',
+        name: 'Expired',
+        purchaseDate: day(2025, 12, 1),
+        coverageLines: [
+          CoverageLine(
+            kind: CoverageLineKind.returnWindow,
+            basis: ExplicitEndDate(endDateValue: DayDate(2026, 1, 31)),
+          ),
+        ],
+      ));
+      await repo.save(PurchaseItem(
+        id: 'plain-item',
+        name: 'Plain',
+        purchaseDate: day(2026, 6, 1),
+      ));
+      await repo.save(PurchaseItem(
+        id: 'archived-item',
+        name: 'Archived',
+        purchaseDate: day(2026, 1, 1),
+        coverageLines: [
+          CoverageLine(
+            kind: CoverageLineKind.manufacturerWarranty,
+            basis: DurationFromPurchase.years(3),
+          ),
+        ],
+        archived: true,
+      ));
+    }
+
+    Future<Set<String>> tabIds(
+      DriftItemRepository repo,
+      ItemQuery Function() build,
+    ) async =>
+        {for (final i in await repo.list(build())) i.id};
+
+    test('coverage now = still-covering items + plain items, no archived',
+        () async {
+      await withTestDatabase((db) async {
+        await seedTabs(db);
+        final repo = DriftItemRepository(db);
+        final ids = await tabIds(
+          repo,
+          () => ItemQuery(today: day(2026, 6, 15), coverageNow: true),
+        );
+        // expiring-item's line ends 2026-06-30 — still covering today.
+        expect(ids, {'active-item', 'expiring-item', 'plain-item'});
+      });
+    });
+
+    test('expiring soon = items with a line ending within the horizon',
+        () async {
+      await withTestDatabase((db) async {
+        await seedTabs(db);
+        final repo = DriftItemRepository(db);
+        final wide = await tabIds(
+          repo,
+          () => ItemQuery(
+              today: day(2026, 6, 15), expiringSoon: true, horizonDays: 30),
+        );
+        expect(wide, {'expiring-item'});
+
+        // Horizon 7 excludes the 15-day-out line.
+        final narrow = await tabIds(
+          repo,
+          () => ItemQuery(
+              today: day(2026, 6, 15), expiringSoon: true, horizonDays: 7),
+        );
+        expect(narrow, isEmpty);
+      });
+    });
+
+    test('archive view = archived items + fully-expired items', () async {
+      await withTestDatabase((db) async {
+        await seedTabs(db);
+        final repo = DriftItemRepository(db);
+        final ids = await tabIds(
+          repo,
+          () => ItemQuery(today: day(2026, 6, 15), archiveView: true),
+        );
+        expect(ids, {'archived-item', 'expired-item'});
+      });
+    });
+
+    test('search composes with tab filters (SQL-side prefilter)', () async {
+      await withTestDatabase((db) async {
+        await seedTabs(db);
+        final repo = DriftItemRepository(db);
+        final ids = await tabIds(
+          repo,
+          () => ItemQuery(
+            today: day(2026, 6, 15),
+            coverageNow: true,
+            search: 'plain',
+          ),
+        );
+        expect(ids, {'plain-item'});
+      });
+    });
+  });
+
+  group('categories()', () {
+    test('distinct, sorted, nulls excluded', () async {
+      await withTestDatabase((db) async {
+        final repo = DriftItemRepository(db);
+        await repo.save(fullItem(id: 'x', category: 'tools'));
+        await repo.save(fullItem(id: 'y', category: 'kitchen'));
+        await repo.save(fullItem(id: 'z', category: 'tools'));
+        await repo.save(fullItem(id: 'n', category: null));
+        expect(await repo.categories(), ['kitchen', 'tools']);
+      });
+    });
+  });
 }
 
 /// Test-only aggregate copy helper — the domain keeps aggregates immutable
