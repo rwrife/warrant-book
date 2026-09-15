@@ -12,14 +12,17 @@ dependencies:
   drift: ^2.28.0
   flutter:
     sdk: flutter
+  flutter_local_notifications: ^22.3.1
   flutter_localizations:
     sdk: flutter
   # Bundles the native SQLite library into the Android/iOS app binaries.
   # Host (Linux/macOS) tests use the system libsqlite3 instead — see
   # test/data/support/db_test_support.dart.
+  flutter_timezone: ^5.1.0
   path_provider: ^2.1.5
   shared_preferences: ^2.5.0
   sqlite3_flutter_libs: ^0.5.40
+  timezone: ^0.11.1
   uuid: ^4.5.0
 
 dev_dependencies:
