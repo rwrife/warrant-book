@@ -11,6 +11,7 @@ import 'package:flutter/widgets.dart';
 
 import 'domain/models/day_date.dart';
 import 'domain/repositories/item_repository.dart';
+import 'features/reminders/reminder_scheduler.dart';
 import 'features/settings/app_settings.dart';
 
 /// Read-only app services shared down the widget tree.
@@ -19,12 +20,14 @@ class AppScope extends InheritedWidget {
     required this.repository,
     required this.settings,
     required this.today,
+    this.reminderScheduler,
     required super.child,
     super.key,
   });
 
   final ItemRepository repository;
   final AppSettings settings;
+  final ReminderScheduler? reminderScheduler;
 
   /// The calendar day all statuses are evaluated against. Injectable so
   /// widget tests can freeze time deterministically.
@@ -49,5 +52,6 @@ class AppScope extends InheritedWidget {
   bool updateShouldNotify(AppScope oldWidget) =>
       repository != oldWidget.repository ||
       settings != oldWidget.settings ||
+      reminderScheduler != oldWidget.reminderScheduler ||
       today != oldWidget.today;
 }

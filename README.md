@@ -31,7 +31,7 @@ Paper receipts fade, emails get buried, and warranty terms are impossible to loo
 2. Add an item: name, category, store/seller, purchase date, price and currency (optional), coverage lines (return window, manufacturer warranty, extended warranty — each with duration or end date), and attach a receipt photo or PDF from the gallery/files (optional).
 3. Browse views: **Coverage now** (active windows), **Expiring soon** (configurable 7/14/30-day horizon), **Archive** (expired/disposed items).
 4. Tap an item for full detail, attached documents, and a notes timeline (e.g., "repair submitted 3 May, RMA 12345").
-5. Set per-item reminder choices (which coverage line to alert on, how many days ahead, repeat or once).
+5. Enable optional local reminders, then set per-item lead days, scheduling horizon, and coverage-line kinds to watch.
 6. Export anytime: CSV for spreadsheets, or a versioned ZIP backup containing the database plus all attached documents. Restore from that backup on a new device.
 
 ## MVP feature list
@@ -63,12 +63,12 @@ Paper receipts fade, emails get buried, and warranty terms are impossible to loo
 
 ## Current status and milestones
 
-**Status: M1 in progress.** The Flutter workspace, strict analyzer settings, smoke tests, and CI gates are in place; the application is a skeleton (placeholder home screen) — registry UI, persistence, reminders, and packaging land in later milestones.
+**Status: M3 complete.** The local database, registry workflow, coverage views, persisted global/per-item reminder controls, local scheduling, and notification-to-detail routing are implemented. Attachments and backup/restore remain M4 work; the reminder service already exposes the M4 restore-reschedule hook.
 
 - M0 — Documentation & backlog ✅
-- M1 — Project skeleton, CI, and local data layer (in progress — workspace + CI done, data layer next)
-- M2 — Core registry workflow (add / browse / detail)
-- M3 — Coverage math, reminders, and accessible lists
+- M1 — Project skeleton, CI, and local data layer ✅
+- M2 — Core registry workflow (add / browse / detail) ✅
+- M3 — Coverage math, reminders, and accessible lists ✅
 - M4 — Attachments, export/backup/restore, privacy controls
 - M5 — Packaging (Android APK / iOS TestFlight candidate), docs, release
 
@@ -93,6 +93,7 @@ flutter build ios --simulator --debug  # iOS simulator build (macOS)
 CI (GitHub Actions, on every PR and push to `main`): `flutter analyze`, `flutter test`, an Android debug APK build (uploaded as an artifact), and an iOS simulator build. See `.github/workflows/ci.yml`.
 
 See `PLAN.md` for architecture, milestones, testing, packaging, and risks.
+Reminder behavior, permissions, platform setup, and rolling OS limits are documented in [`docs/reminders.md`](docs/reminders.md).
 
 ## License
 

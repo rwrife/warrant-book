@@ -50,7 +50,7 @@ integration_test/           # end-to-end add->alert->export flow (post-M2)
 
 1. **M1 Skeleton + data layer** — Flutter workspace, CI (analyze/test/build), Drift schema (items, coverage_lines, notes, attachments), repository interfaces, domain coverage math with exhaustive unit tests. *(Depends on: nothing)*
 2. **M2 Core workflow UI** — add/edit form, coverage-now list, detail view, search. First end-to-end user-visible value. *(Depends on M1)*
-3. **M3 Reminders** — notification permission flow, scheduler recomputation, per-item settings, expiring-soon list. *(Depends on M2)*
+3. **M3 Reminders** ✅ — notification permission flow, serialized scheduler recomputation, per-item settings, notification routing, and expiring-soon list. *(Depends on M2)*
 4. **M4 Attachments + backup** — receipt capture/storage/preview/deletion, CSV export, versioned ZIP backup + restore, erase-all. *(Depends on M2; restore also depends on M1 schema versioning)*
 5. **M5 Packaging + polish** — accessibility pass, app icons/splash, signed debug + release APK, iOS build + TestFlight candidate, store-listing text, privacy label documenting zero data collection. *(Depends on M2–M4)*
 

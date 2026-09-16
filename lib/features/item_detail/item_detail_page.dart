@@ -17,6 +17,7 @@ import '../../domain/models/purchase_item.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../add_edit/item_form_page.dart';
 import '../items/widgets.dart';
+import '../reminders/item_reminder_dialog.dart';
 
 /// Detail screen for one purchase item, resolved from [itemId] on every
 /// rebuild so edits/archives/deletes from any path are reflected.
@@ -189,12 +190,18 @@ class _DetailScaffold extends StatelessWidget {
             onSelected: (value) {
               unawaited(switch (value) {
                 'edit' => onEdit(),
+                'reminders' => showItemReminderDialog(context, item),
                 'archive' => onToggleArchive(),
                 'delete' => onDelete(),
                 _ => Future<void>.value(),
               });
             },
             itemBuilder: (context) => [
+              PopupMenuItem(
+                key: const Key('detailMenuReminders'),
+                value: 'reminders',
+                child: Text(l10n.itemReminderSettings),
+              ),
               PopupMenuItem(
                 key: const Key('detailMenuEdit'),
                 value: 'edit',
