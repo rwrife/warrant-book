@@ -173,5 +173,66 @@
     "placeholders": { "name": { "type": "String" } }
   },
   "editItem": "Edit",
-  "@editItem": { "description": "Action opening the edit form from the detail screen." }
+  "@editItem": { "description": "Action opening the edit form from the detail screen." },
+
+  "attachmentsSection": "Attachments",
+  "@attachmentsSection": { "description": "Detail-screen section listing receipt attachments." },
+  "emptyAttachments": "No receipts attached. Tap the link icon to add a photo or PDF.",
+  "@emptyAttachments": { "description": "Empty state of the attachments section." },
+  "addAttachment": "Add receipt",
+  "@addAttachment": { "description": "Tooltip of the add-attachment action." },
+  "attachPhotoAction": "Attach photo (gallery or camera)",
+  "@attachPhotoAction": { "description": "Bottom-sheet option to attach an image." },
+  "attachPdfAction": "Attach PDF",
+  "@attachPdfAction": { "description": "Bottom-sheet option to attach a PDF document." },
+  "deleteAttachmentTitle": "Delete this attachment?",
+  "@deleteAttachmentTitle": { "description": "Title of the attachment delete confirmation." },
+  "deleteAttachmentMessage": "\"{name}\" will be permanently removed from this item.",
+  "@deleteAttachmentMessage": {
+    "description": "Body of the attachment delete confirmation.",
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "attachmentMissing": "File missing on disk",
+  "@attachmentMissing": { "description": "Shown when a referenced attachment file is gone." },
+
+  "dataSettingsTitle": "Data & privacy",
+  "@dataSettingsTitle": { "description": "Title/tooltip of the data ownership screen." },
+  "dataSettingsIntro": "Your data never leaves this device unless you export or share it yourself.",
+  "@dataSettingsIntro": { "description": "Intro copy in the data & privacy dialog." },
+  "exportCsvAction": "Export CSV",
+  "@exportCsvAction": { "description": "CSV export action in the data dialog." },
+  "backupAction": "Create ZIP backup",
+  "@backupAction": { "description": "Backup creation action in the data dialog." },
+  "restoreAction": "Restore from backup",
+  "@restoreAction": { "description": "Restore action in the data dialog and its confirmation." },
+  "eraseAllAction": "Erase all data",
+  "@eraseAllAction": { "description": "Destructive erase action in the data dialog." },
+  "close": "Close",
+  "@close": { "description": "Dismiss button on the data dialog." },
+  "exportShared": "CSV written and handed to the share sheet.",
+  "@exportShared": { "description": "Success status after a CSV export." },
+  "backupCreated": "Backup written to {path}",
+  "@backupCreated": {
+    "description": "Success status after creating a backup.",
+    "placeholders": { "path": { "type": "String" } }
+  },
+  "restoreConfirmTitle": "Replace all current data?",
+  "@restoreConfirmTitle": { "description": "Title of the destructive restore confirmation." },
+  "restoreConfirmMessage": "Restoring will REPLACE everything currently in the app (items, coverage, receipts, settings) with this backup: schema v{schema}, created {created}, containing {files} file(s). This cannot be undone.",
+  "@restoreConfirmMessage": {
+    "description": "Body of the destructive restore confirmation with manifest facts.",
+    "placeholders": { "schema": { "type": "String" }, "created": { "type": "String" }, "files": { "type": "String" } }
+  },
+  "restoreApplied": "Backup restored and reminders re-scheduled.",
+  "@restoreApplied": { "description": "Success status after a restore." },
+  "restoreCancelled": "Cancelled — nothing was changed.",
+  "@restoreCancelled": { "description": "Status when a restore was backed out of." },
+  "eraseAllConfirmTitle": "Erase ALL app data?",
+  "@eraseAllConfirmTitle": { "description": "Title of the erase-all confirmation dialog." },
+  "eraseAllConfirmMessage": "This permanently deletes every item, note, attachment, and setting on this device, and cancels all reminders. There is no undo.",
+  "@eraseAllConfirmMessage": { "description": "Body of the erase-all confirmation dialog." },
+  "eraseAcknowledgeLabel": "I understand this cannot be undone",
+  "@eraseAcknowledgeLabel": { "description": "Required acknowledgement checkbox before erasing." },
+  "eraseDone": "All data erased.",
+  "@eraseDone": { "description": "Success status after erasing everything." }
 }

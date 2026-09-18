@@ -11,6 +11,8 @@ abstract interface class SettingsStore {
   Future<void> writeInt(String key, int value);
   Future<String?> readString(String key);
   Future<void> writeString(String key, String value);
+  Future<Iterable<String>> keys();
+  Future<bool> remove(String key);
 }
 
 class SharedPreferencesSettingsStore implements SettingsStore {
@@ -31,6 +33,14 @@ class SharedPreferencesSettingsStore implements SettingsStore {
   Future<void> writeString(String key, String value) async {
     await (await SharedPreferences.getInstance()).setString(key, value);
   }
+
+  @override
+  Future<Iterable<String>> keys() async =>
+      (await SharedPreferences.getInstance()).getKeys();
+
+  @override
+  Future<bool> remove(String key) async =>
+      (await SharedPreferences.getInstance()).remove(key);
 }
 
 class InMemorySettingsStore implements SettingsStore {
@@ -48,6 +58,12 @@ class InMemorySettingsStore implements SettingsStore {
   @override
   Future<void> writeString(String key, String value) async =>
       _values[key] = value;
+
+  @override
+  Future<Iterable<String>> keys() async => _values.keys.toList();
+
+  @override
+  Future<bool> remove(String key) async => _values.remove(key) != null;
 }
 
 enum ReminderPermissionState { unknown, granted, denied }
@@ -213,6 +229,21 @@ class AppSettings extends ChangeNotifier {
 
   Future<void> removeItemReminderOverride(String itemId) =>
       setItemReminderOverride(itemId, null);
+
+  /// Erase-all support (issue #6): removes every preference this app has
+  /// ever written and resets in-memory state to defaults so no stale UI
+  /// survives the wipe.
+  Future<void> eraseAllStored() async {
+    await _store.remove(_horizonKey);
+    await _store.remove(_remindersKey);
+    _horizonDays = defaultHorizonDays;
+    _remindersEnabled = false;
+    _reminderPermissionState = ReminderPermissionState.unknown;
+    _defaultReminderDays = _normalizeDays(const [30, 7]);
+    _defaultReminderHorizonDays = defaultReminderHorizonDaysValue;
+    _itemReminderOverrides.clear();
+    notifyListeners();
+  }
 
   Future<void> _persistReminders() async {
     await _store.writeString(

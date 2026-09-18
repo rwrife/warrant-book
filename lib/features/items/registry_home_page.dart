@@ -17,6 +17,7 @@ import '../../domain/repositories/item_repository.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../add_edit/item_form_page.dart';
 import '../settings/app_settings.dart';
+import '../settings/data_settings_dialog.dart';
 import '../settings/settings_dialog.dart';
 import 'widgets.dart';
 
@@ -105,6 +106,12 @@ class _RegistryHomePageState extends State<RegistryHomePage>
       appBar: AppBar(
         title: Text(l10n.appTitle),
         actions: [
+          IconButton(
+            key: const Key('dataSettingsButton'),
+            icon: const Icon(Icons.import_export_outlined),
+            tooltip: l10n.dataSettingsTitle,
+            onPressed: () => showDataSettingsDialog(context),
+          ),
           IconButton(
             key: const Key('settingsButton'),
             icon: const Icon(Icons.settings_outlined),

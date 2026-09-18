@@ -126,8 +126,12 @@ class WarrantBookDatabase extends _$WarrantBookDatabase {
   /// a file under app-private storage; tests: `NativeDatabase.memory()`).
   WarrantBookDatabase(super.executor);
 
+  /// The one authoritative schema version — also embedded in backup
+  /// manifests (issue #6) so restore can refuse future databases.
+  static const int currentSchemaVersion = 1;
+
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => WarrantBookDatabase.currentSchemaVersion;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
