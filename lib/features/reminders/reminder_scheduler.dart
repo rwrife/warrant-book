@@ -125,6 +125,18 @@ class ReminderScheduler extends ChangeNotifier {
   /// Stable restore integration point for issue #6.
   Future<void> afterRestore() => recompute();
 
+  /// Erase-all support (issue #6): cancel every OS-scheduled notification.
+  /// The platform call is contained like the rest of the scheduler so a
+  /// failing plugin cannot abort the data wipe the user asked for.
+  Future<void> cancelAllPending() async {
+    try {
+      await _platform.cancelAll();
+      if (_platformReady) _setLastError(null);
+    } on Object catch (error) {
+      _recordError(error);
+    }
+  }
+
   Future<void> _recomputeNow() async {
     if (!_platformReady) return;
     await _platform.cancelAll();

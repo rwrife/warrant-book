@@ -8,8 +8,11 @@ environment:
   sdk: ^3.13.2
 
 dependencies:
+  archive: ^4.3.0
+  crypto: ^3.0.7
   cupertino_icons: ^1.0.8
   drift: ^2.28.0
+  file_picker: ^13.1.0
   flutter:
     sdk: flutter
   flutter_local_notifications: ^22.3.1
@@ -19,7 +22,10 @@ dependencies:
   # Host (Linux/macOS) tests use the system libsqlite3 instead — see
   # test/data/support/db_test_support.dart.
   flutter_timezone: ^5.1.0
+  image_picker: ^1.2.3
+  path: ^1.9.1
   path_provider: ^2.1.5
+  share_plus: ^13.3.0
   shared_preferences: ^2.5.0
   sqlite3_flutter_libs: ^0.5.40
   timezone: ^0.11.1

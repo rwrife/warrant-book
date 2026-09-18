@@ -16,6 +16,7 @@ import '../../domain/models/coverage_line.dart';
 import '../../domain/models/purchase_item.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../add_edit/item_form_page.dart';
+import '../attachments/attachment_section.dart';
 import '../items/widgets.dart';
 import '../reminders/item_reminder_dialog.dart';
 
@@ -88,7 +89,14 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
       ),
     );
     if (confirmed != true) return;
-    await scope.repository.delete(item.id);
+    // Delete through the lifecycle service so attachment files that lose
+    // their last reference are swept too (issue #6: no orphan files).
+    final lifecycle = scope.lifecycle;
+    if (lifecycle != null) {
+      await lifecycle.deleteItem(item.id);
+    } else {
+      await scope.repository.delete(item.id);
+    }
     // Pop back to the list, telling it to refresh.
     navigator.pop(true);
   }
@@ -152,6 +160,7 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
           onToggleArchive: () => _toggleArchive(item),
           onDelete: () => _delete(item),
           onAddNote: (text) => _addNote(item, text),
+          onAttachmentsChanged: _reloadAsync,
         );
       },
     );
@@ -165,6 +174,7 @@ class _DetailScaffold extends StatelessWidget {
     required this.onToggleArchive,
     required this.onDelete,
     required this.onAddNote,
+    required this.onAttachmentsChanged,
   });
 
   final PurchaseItem item;
@@ -172,6 +182,7 @@ class _DetailScaffold extends StatelessWidget {
   final Future<void> Function() onToggleArchive;
   final Future<void> Function() onDelete;
   final Future<void> Function(String text) onAddNote;
+  final Future<void> Function() onAttachmentsChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -275,6 +286,11 @@ class _DetailScaffold extends StatelessWidget {
                   ],
                 ),
               ),
+          const Divider(height: 32),
+          AttachmentSection(
+            item: item,
+            onChange: onAttachmentsChanged,
+          ),
           const Divider(height: 32),
           Text(l10n.notesSection,
               style: Theme.of(context).textTheme.titleMedium),

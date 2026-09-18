@@ -9,8 +9,10 @@
 
 import 'package:flutter/widgets.dart';
 
+import 'data/lifecycle/data_lifecycle_service.dart';
 import 'domain/models/day_date.dart';
 import 'domain/repositories/item_repository.dart';
+import 'features/attachments/attachment_picker.dart';
 import 'features/reminders/reminder_scheduler.dart';
 import 'features/settings/app_settings.dart';
 
@@ -21,6 +23,9 @@ class AppScope extends InheritedWidget {
     required this.settings,
     required this.today,
     this.reminderScheduler,
+    this.lifecycle,
+    this.attachmentPicker,
+    this.fileSharer,
     required super.child,
     super.key,
   });
@@ -28,6 +33,17 @@ class AppScope extends InheritedWidget {
   final ItemRepository repository;
   final AppSettings settings;
   final ReminderScheduler? reminderScheduler;
+
+  /// Issue #6 data lifecycle (CSV export, backup/restore, erase-all).
+  /// Null in tests that exercise older UI paths without lifecycle needs.
+  final DataLifecycleService? lifecycle;
+
+  /// Test seam for the attachment file pickers (production: null → the
+  /// platform image_picker/file_picker implementations).
+  final AttachmentPicker? attachmentPicker;
+
+  /// Test seam for handing exported files to the OS share sheet.
+  final FileShareCallback? fileSharer;
 
   /// The calendar day all statuses are evaluated against. Injectable so
   /// widget tests can freeze time deterministically.
@@ -53,5 +69,8 @@ class AppScope extends InheritedWidget {
       repository != oldWidget.repository ||
       settings != oldWidget.settings ||
       reminderScheduler != oldWidget.reminderScheduler ||
+      lifecycle != oldWidget.lifecycle ||
+      attachmentPicker != oldWidget.attachmentPicker ||
+      fileSharer != oldWidget.fileSharer ||
       today != oldWidget.today;
 }

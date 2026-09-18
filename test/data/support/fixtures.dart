@@ -20,6 +20,12 @@ PurchaseItem fullItem({
   String? store = 'Home Depot',
   PurchaseRecordedPrice price = const PurchaseRecordedPrice.missing(),
   bool archived = false,
+  List<AttachmentRef> attachments = const [
+    AttachmentRef(
+      relativePath: 'receipts/drill.jpg',
+      displayName: 'drill.jpg',
+    ),
+  ],
 }) {
   return PurchaseItem(
     id: id,
@@ -48,12 +54,7 @@ PurchaseItem fullItem({
       Note(text: 'Registered online', recordedOn: DayDate(2026, 1, 16)),
       Note(text: 'Bit set included', recordedOn: DayDate(2026, 1, 15)),
     ],
-    attachments: const [
-      AttachmentRef(
-        relativePath: 'receipts/drill.jpg',
-        displayName: 'drill.jpg',
-      ),
-    ],
+    attachments: attachments,
     archived: archived,
   );
 }

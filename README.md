@@ -55,21 +55,21 @@ Paper receipts fade, emails get buried, and warranty terms are impossible to loo
 
 ## Privacy, permissions, and data storage
 
-- **Data storage:** All items, notes, and attachments are stored in an app-private SQLite database and app-private document directory on the device. Nothing leaves the device unless the user explicitly exports a file or shares a single document via the OS share sheet.
-- **Permissions:** Notifications (optional, only if reminders are enabled). Camera/photo access only when the user actively attaches a receipt. No location, contacts, calendar, or microphone access.
+- **Data storage:** All items, notes, and attachments are stored in an app-private SQLite database and an app-private attachment directory on the device (receipt files are named by their SHA-256 content hash). Backups and CSV exports the user creates land in the app's documents directory. Nothing leaves the device unless the user explicitly exports a file or shares a single document via the OS share sheet.
+- **Permissions:** Notifications (Android `POST_NOTIFICATIONS`, optional, only if reminders are enabled; plus boot-restart for scheduled reminders). Receipt attach opens the platform photo picker (Android Photo Picker / iOS PHPicker — no standing gallery permission) or the system file picker for PDFs; no camera, location, contacts, calendar, or microphone access.
 - **Telemetry:** None. No analytics or crash-reporting SDKs that exfiltrate content.
-- **Deletion:** Per-item delete removes database rows and attachment files. "Erase all data" wipes the database, documents, and preferences.
+- **Deletion:** Per-item delete removes database rows and sweeps unreferenced attachment files (with a tested orphan sweep). "Erase all data" cancels every scheduled notification, then wipes the database, attachment files, and stored preferences.
 - **Encryption:** Relies on OS-managed device encryption; no extra key management in MVP.
 
 ## Current status and milestones
 
-**Status: M3 complete.** The local database, registry workflow, coverage views, persisted global/per-item reminder controls, local scheduling, and notification-to-detail routing are implemented. Attachments and backup/restore remain M4 work; the reminder service already exposes the M4 restore-reschedule hook.
+**Status: M4 complete.** Attachments (photo/PDF, content-hash storage, inline preview, orphan-free cleanup), CSV export via the share sheet, versioned ZIP backup/restore (manifest + SHA-256 integrity, future-version refusal, destructive-overwrite confirmation, reminder re-schedule on restore), and erase-all are implemented.
 
 - M0 — Documentation & backlog ✅
 - M1 — Project skeleton, CI, and local data layer ✅
 - M2 — Core registry workflow (add / browse / detail) ✅
 - M3 — Coverage math, reminders, and accessible lists ✅
-- M4 — Attachments, export/backup/restore, privacy controls
+- M4 — Attachments, export/backup/restore, privacy controls ✅
 - M5 — Packaging (Android APK / iOS TestFlight candidate), docs, release
 
 ## Development quickstart

@@ -9,9 +9,12 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'app_scope.dart';
+import 'data/attachments/attachment_store.dart';
+import 'data/lifecycle/data_lifecycle_service.dart';
 import 'data/repositories/drift_item_repository.dart';
 import 'domain/models/day_date.dart';
 import 'domain/repositories/item_repository.dart';
+import 'features/attachments/attachment_picker.dart';
 import 'features/item_detail/item_detail_page.dart';
 import 'features/items/registry_home_page.dart';
 import 'features/reminders/local_notifications_platform.dart';
@@ -32,15 +35,26 @@ Future<void> main() async {
     platform: LocalNotificationsPlatform(),
   );
   await reminderScheduler.initialize();
+  final reschedulingRepository = ReschedulingItemRepository(
+    baseRepository,
+    reminderScheduler,
+    settings,
+  );
+  final attachments = AttachmentStore(db, '${dir.path}/attachments');
+  final lifecycle = DataLifecycleService(
+    db: db,
+    repository: reschedulingRepository,
+    attachments: attachments,
+    settings: settings,
+    documentsDir: dir.path,
+    reminderScheduler: reminderScheduler,
+  );
   runApp(
     WarrantBookApp(
-      repository: ReschedulingItemRepository(
-        baseRepository,
-        reminderScheduler,
-        settings,
-      ),
+      repository: reschedulingRepository,
       settings: settings,
       reminderScheduler: reminderScheduler,
+      lifecycle: lifecycle,
     ),
   );
 }
@@ -55,6 +69,9 @@ class WarrantBookApp extends StatefulWidget {
     required this.settings,
     this.today,
     this.reminderScheduler,
+    this.lifecycle,
+    this.attachmentPicker,
+    this.fileSharer,
     this.clock = DateTime.now,
     super.key,
   });
@@ -66,6 +83,13 @@ class WarrantBookApp extends StatefulWidget {
   /// null and derives the current day from [clock].
   final DayDate? today;
   final ReminderScheduler? reminderScheduler;
+
+  /// Issue #6 data lifecycle service; optional for UI-only tests.
+  final DataLifecycleService? lifecycle;
+
+  /// Test seams for the file picker and share sheet (issue #6).
+  final AttachmentPicker? attachmentPicker;
+  final FileShareCallback? fileSharer;
   final DateTime Function() clock;
 
   @override
@@ -155,6 +179,9 @@ class _WarrantBookAppState extends State<WarrantBookApp>
       settings: widget.settings,
       today: _today,
       reminderScheduler: widget.reminderScheduler,
+      lifecycle: widget.lifecycle,
+      attachmentPicker: widget.attachmentPicker,
+      fileSharer: widget.fileSharer,
       child: MaterialApp(
         navigatorKey: _navigatorKey,
         onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
