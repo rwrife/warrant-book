@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Warrant Book splash (issue #7): brand green with the centered shield. -->
+<!-- Warrant Book splash, dark mode (issue #7): deep green with the shield. -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:drawable="@color/splash_background" />
+    <item android:drawable="@color/splash_background_dark" />
     <item>
         <bitmap
             android:gravity="center"

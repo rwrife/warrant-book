@@ -207,13 +207,18 @@ class _ItemFormPageState extends State<ItemFormPage> {
                   (value ?? '').trim().isEmpty ? l10n.nameRequired : null,
             ),
             const SizedBox(height: 12),
-            InkWell(
-              key: const Key('purchaseDateField'),
-              onTap: _pickPurchaseDate,
-              child: InputDecorator(
-                decoration:
-                    InputDecoration(labelText: l10n.fieldPurchaseDate),
-                child: Text('$_purchaseDate'),
+            // Tappable date picker: expose a button role (issue #7 —
+            // the merged label alone announces text, not an action).
+            Semantics(
+              button: true,
+              child: InkWell(
+                key: const Key('purchaseDateField'),
+                onTap: _pickPurchaseDate,
+                child: InputDecorator(
+                  decoration:
+                      InputDecoration(labelText: l10n.fieldPurchaseDate),
+                  child: Text('$_purchaseDate'),
+                ),
               ),
             ),
             const SizedBox(height: 12),
@@ -420,6 +425,9 @@ class _LineEditorCard extends StatelessWidget {
                   child: DropdownButtonFormField<CoverageLineKind>(
                     key: Key('kindField-$index'),
                     initialValue: editor.kind,
+                    // Ellipsize instead of overflowing when the selected
+                    // label exceeds the row at large text scales (#7).
+                    isExpanded: true,
                     decoration:
                         const InputDecoration(isDense: true),
                     items: [
@@ -451,15 +459,28 @@ class _LineEditorCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 8),
-            SegmentedButton<bool>(
-              key: Key('basisToggle-$index'),
-              segments: [
-                ButtonSegment(value: true, label: Text(l10n.basisDuration)),
-                ButtonSegment(value: false, label: Text(l10n.basisExplicit)),
-              ],
-              selected: {editor.durationMode},
-              onSelectionChanged: (selection) =>
-                  editor.setDurationMode(selection.first),
+            // Scrollable horizontally so long segment labels survive the
+            // accessibility "largest" text scale without overflow
+            // (issue #7 dynamic-type check).
+            SizedBox(
+              width: double.infinity,
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: IntrinsicWidth(
+                  child: SegmentedButton<bool>(
+                    key: Key('basisToggle-$index'),
+                    segments: [
+                      ButtonSegment(
+                          value: true, label: Text(l10n.basisDuration)),
+                      ButtonSegment(
+                          value: false, label: Text(l10n.basisExplicit)),
+                    ],
+                    selected: {editor.durationMode},
+                    onSelectionChanged: (selection) =>
+                        editor.setDurationMode(selection.first),
+                  ),
+                ),
+              ),
             ),
             const SizedBox(height: 8),
             if (editor.durationMode)
@@ -479,8 +500,11 @@ class _LineEditorCard extends StatelessWidget {
               Row(
                 children: [
                   Expanded(
-                    child: InkWell(
-                      key: Key('endDateField-$index'),
+                    child: Semantics(
+                      button: true,
+                      label: l10n.fieldEndDate,
+                      child: InkWell(
+                        key: Key('endDateField-$index'),
                       onTap: () async {
                         final picked = await showDatePicker(
                           context: context,
@@ -501,6 +525,7 @@ class _LineEditorCard extends StatelessWidget {
                         child: Text(
                           '${editor.endDateValue ?? ''}',
                         ),
+                      ),
                       ),
                     ),
                   ),

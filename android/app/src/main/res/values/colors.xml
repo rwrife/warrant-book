@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Splash backdrop matching the app's brand green (issue #7). -->
+    <color name="splash_background">#2E7D32</color>
+    <color name="splash_background_dark">#1B5E20</color>
+</resources>

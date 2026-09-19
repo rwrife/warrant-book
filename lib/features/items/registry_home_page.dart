@@ -332,7 +332,14 @@ class ItemRowTile extends StatelessWidget {
             : '${item.purchaseDate}'
                   '${highlight == null ? '' : ' · ${remainingLabel(l10n, highlight)}'}',
       ),
-      trailing: ItemStatusChip(rolled),
+      // The status chip is wrapped in a container boundary so it is NOT
+      // merged into this row's tap label; the screen reader speaks the
+      // name + remaining time on the row button, then the chip's own
+      // "Status: … (color)" phrase as a separate node (issue #7).
+      trailing: Semantics(
+        container: true,
+        child: ItemStatusChip(rolled),
+      ),
       onTap: () async {
         final navigator = Navigator.of(context);
         await navigator.pushNamed('/item', arguments: item.id);

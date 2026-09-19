@@ -5,6 +5,7 @@ on:
     branches: [main]
   push:
     branches: [main]
+    tags: ["v*"]
 
 # Keep one active run per PR/branch; cancel superseded pushes.
 concurrency:
@@ -80,3 +81,87 @@ jobs:
         run: flutter pub get
       - name: flutter build ios --simulator --debug
         run: flutter build ios --simulator --debug
+
+  # Signed release APK (issue #7): built on every CI run; on `v*` tags
+  # the APK is published to a GitHub Release with the exact build
+  # command output in the notes (see docs/releases.md).
+  android-release-apk:
+    name: Android release APK (signed)
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      - name: Assert tag matches pubspec version
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          PUBSPEC_VERSION=$(grep '^version: ' pubspec.yaml | cut -d' ' -f2 | cut -d'+' -f1)
+          TAG="${GITHUB_REF_NAME#v}"
+          if [ "$PUBSPEC_VERSION" != "$TAG" ]; then
+            echo "Tag v$TAG does not match pubspec version $PUBSPEC_VERSION" >&2
+            exit 1
+          fi
+      - name: Use private release keystore when configured
+        if: ${{ env.RELEASE_KEYSTORE != '' }}
+        env:
+          RELEASE_KEYSTORE: ${{ secrets.RELEASE_KEYSTORE }}
+          RELEASE_KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
+          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+        run: |
+          echo "$RELEASE_KEYSTORE" | base64 -d > "$RUNNER_TEMP/release.jks"
+          echo "WB_KEYSTORE_FILE=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
+          echo "WB_KEYSTORE_PASSWORD=$RELEASE_KEYSTORE_PASSWORD" >> "$GITHUB_ENV"
+          echo "WB_KEY_PASSWORD=$RELEASE_KEY_PASSWORD" >> "$GITHUB_ENV"
+      - name: flutter pub get
+        run: flutter pub get
+      - name: flutter build apk --release
+        run: flutter build apk --release | tee /tmp/release-build-output.txt
+      - name: Verify APK signature
+        run: |
+          APK=build/app/outputs/flutter-apk/app-release.apk
+          APKSIGNER=$(find "$ANDROID_HOME/build-tools" -name apksigner -type f | sort | tail -1)
+          "$APKSIGNER" verify --print-certs "$APK" | tee /tmp/apk-signature.txt
+      - name: Assemble release notes
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          {
+            echo "## Warrant Book ${GITHUB_REF_NAME}"
+            echo
+            echo "Release-mode Android APK signed with the repo preview keystore"
+            echo "(preview only — see docs/releases.md before distributing)."
+            echo
+            echo '```'
+            cat /tmp/apk-signature.txt
+            echo '```'
+            echo
+            echo "### SHA-256"
+            echo '```'
+            sha256sum build/app/outputs/flutter-apk/app-release.apk
+            echo '```'
+            echo
+            echo "### Exact build command output"
+            echo '```'
+            cat /tmp/release-build-output.txt
+            echo '```'
+          } > /tmp/release-notes.md
+      - name: Upload release APK (artifact)
+        uses: actions/upload-artifact@v4
+        with:
+          name: warrant-book-android-release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+      - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: /tmp/release-notes.md
+          prerelease: ${{ startsWith(github.ref_name, 'v0.') }}
+          files: build/app/outputs/flutter-apk/app-release.apk
