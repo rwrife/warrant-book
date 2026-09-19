@@ -12,7 +12,6 @@
 //    overflow) at the 3.30x accessibility "largest" text scale.
 
 import 'dart:math' show pow;
-import 'dart:ui' show SemanticsFlag;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
@@ -72,7 +71,10 @@ List<SemanticsNode> allSemantics(WidgetTester tester) {
     });
   }
 
-  final root = tester.binding.pipelineOwner.semanticsOwner?.rootSemanticsNode;
+  // Same path flutter_test's own traversal uses: the RenderView's owner
+  // holds the live SemanticsOwner under the root pipeline.
+  final owner = tester.binding.renderViews.first.owner?.semanticsOwner;
+  final root = owner?.rootSemanticsNode;
   if (root != null) walk(root);
   return nodes;
 }
@@ -99,7 +101,7 @@ void main() {
         final row = find.byKey(const Key('itemRow-seed-1'));
         expect(row, findsOneWidget);
         final semantics = tester.getSemantics(row);
-        expect(semantics.hasFlag(SemanticsFlag.isButton), isTrue,
+        expect(semantics.flagsCollection.isButton, isTrue,
             reason: 'registry row must announce as a button');
         expect(semantics.label, contains('Espresso machine'));
         expect(semantics.label, contains('686 days left'),
@@ -136,7 +138,7 @@ void main() {
         };
         for (final entry in labelled.entries) {
           final data = tester.getSemantics(find.byKey(Key(entry.key)));
-          expect(data.hasFlag(SemanticsFlag.isTextField), isTrue,
+          expect(data.flagsCollection.isTextField, isTrue,
               reason: '${entry.key} must announce as a text field');
           expect(data.label, contains(entry.value),
               reason: '${entry.key} must announce its label');
@@ -145,7 +147,7 @@ void main() {
         // Date pickers announce as buttons (they open a dialog).
         final purchaseDate =
             tester.getSemantics(find.byKey(const Key('purchaseDateField')));
-        expect(purchaseDate.hasFlag(SemanticsFlag.isButton), isTrue);
+        expect(purchaseDate.flagsCollection.isButton, isTrue);
         expect(purchaseDate.label, contains('Purchase date'));
         handle.dispose();
       });
@@ -168,18 +170,18 @@ void main() {
             exposed.any(test);
         expect(
             nodeWith((d) =>
-                d.hasFlag(SemanticsFlag.isTextField) &&
+                d.flagsCollection.isTextField &&
                 d.label.contains('Expiring-soon horizon')),
             isTrue,
             reason: 'horizon input must be a labelled text field');
         expect(
             nodeWith((d) =>
-                d.hasFlag(SemanticsFlag.isButton) && d.label == 'Cancel'),
+                d.flagsCollection.isButton && d.label == 'Cancel'),
             isTrue,
             reason: 'dialog Cancel must announce as a labelled button');
         expect(
             nodeWith((d) =>
-                d.hasFlag(SemanticsFlag.isButton) && d.label == 'Save'),
+                d.flagsCollection.isButton && d.label == 'Save'),
             isTrue,
             reason: 'dialog Save must announce as a labelled button');
         handle.dispose();
@@ -203,7 +205,7 @@ void main() {
         expect(tooltipLabels, contains('Add note'));
 
         final note = tester.getSemantics(find.byKey(const Key('noteField')));
-        expect(note.hasFlag(SemanticsFlag.isTextField), isTrue);
+        expect(note.flagsCollection.isTextField, isTrue);
         expect(note.label, isNotEmpty);
         handle.dispose();
       });
