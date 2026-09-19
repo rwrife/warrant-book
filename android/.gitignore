@@ -12,3 +12,5 @@ GeneratedPluginRegistrant.java
 key.properties
 **/*.keystore
 **/*.jks
+# Exception for the committed preview keystore (issue #7).
+!warrant_book_preview.jks

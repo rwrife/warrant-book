@@ -31,11 +31,30 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        // Preview/distribution signing for this repo (issue #7). The
+        // keystore is committed deliberately: it is a tool-lab preview
+        // key, NOT a Play upload key. See docs/releases.md for how to
+        // swap in a private release keystore via CI secrets.
+        create("preview") {
+            // CI (or a local override) can point WB_KEYSTORE_FILE at a
+            // private keystore; the committed preview key is the default.
+            storeFile = System.getenv("WB_KEYSTORE_FILE")?.let { file(it) }
+                ?: file("warrant_book_preview.jks")
+            storePassword = System.getenv("WB_KEYSTORE_PASSWORD")
+                ?: "warrant-book-preview"
+            keyAlias = "warrant-book-preview"
+            keyPassword = System.getenv("WB_KEY_PASSWORD")
+                ?: "warrant-book-preview"
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            // Signed with the repo preview key so CI can publish a
+            // verifiable release APK; replace via docs/releases.md
+            // before any real distribution.
+            signingConfig = signingConfigs.getByName("preview")
         }
     }
 }

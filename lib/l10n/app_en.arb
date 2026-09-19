@@ -111,6 +111,8 @@
   "@basisExplicit": { "description": "Coverage basis: a fixed end date." },
   "fieldMonths": "Months",
   "@fieldMonths": { "description": "Label of the coverage duration field." },
+  "fieldEndDate": "Coverage end date",
+  "@fieldEndDate": { "description": "Semantics label of the explicit end-date picker button." },
   "fieldLabelOptional": "Label (optional)",
   "@fieldLabelOptional": { "description": "Label of the optional line description field." },
   "endsOn": "Ends {date}",
@@ -133,6 +135,19 @@
   "@statusExpired": { "description": "Status chip: coverage window has closed." },
   "statusNone": "No coverage",
   "@statusNone": { "description": "Status chip: registry item without coverage lines." },
+  "statusChipSemantics": "Status: {status} ({color})",
+  "@statusChipSemantics": {
+    "description": "Screen-reader label for a status chip, naming both the status and its color so the meaning survives without color perception.",
+    "placeholders": { "status": { "type": "String" }, "color": { "type": "String" } }
+  },
+  "statusColorGreen": "green",
+  "@statusColorGreen": { "description": "Color word spoken for the active status chip." },
+  "statusColorOrange": "orange",
+  "@statusColorOrange": { "description": "Color word spoken for the expiring status chip." },
+  "statusColorRed": "red",
+  "@statusColorRed": { "description": "Color word spoken for the expired status chip." },
+  "statusColorGray": "gray",
+  "@statusColorGray": { "description": "Color word spoken for the no-coverage status chip." },
   "daysRemaining": "{count, plural, =1{1 day left} other{{count} days left}}",
   "@daysRemaining": {
     "description": "Remaining whole days until a coverage line ends.",
